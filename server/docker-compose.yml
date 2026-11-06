@@ -1,0 +1,38 @@
+services:
+  apmapper:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    ports:
+      # Наружу лучше отдавать только через HTTPS-прокси (см. README), а не напрямую.
+      - "127.0.0.1:8000:8000"
+
+  # Шлюз трекеров → Аксента. Не стартует сам: включается командой
+  #   docker compose --profile gateway up -d --build
+  gateway:
+    build: .
+    profiles: ["gateway"]
+    command: ["python", "gateway.py"]
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data   # та же база, что у HTTP-сервера
+    ports:
+      # Сюда подключаются трекеры (обычный TCP, как и к самой Аксенте). Порт нужно открыть в файрволе.
+      - "20332:20332"
+
+  # Перехватчик: пересылает терминал → Аксента без изменений и пишет кадры NTCB в ./data/capture.log.
+  # Порт тот же, что у шлюза, поэтому запускать либо его, либо шлюз:
+  #   docker compose --profile capture up -d --build
+  capture:
+    build: .
+    profiles: ["capture"]
+    command: ["python", "capture.py"]
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    ports:
+      - "20332:20332"

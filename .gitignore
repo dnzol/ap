@@ -1,0 +1,18 @@
+# Секреты и данные
+server/.env
+server/data/
+
+# Python
+__pycache__/
+*.pyc
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+
+# Архивы с выгрузками
+*.zip
